@@ -1,0 +1,27 @@
+version: "3.5"
+services:
+  dehclient-db:
+    image: mongo:4.2.8
+    container_name: dehclient-db
+    hostname: dehclient_db
+    ports:
+      - ${MONGO_DB_EXPOSED_PORT}:${MONGO_DB_PORT}
+    volumes:
+      - dehclient_db:/data/db
+      - dehclient_db:/data/configdb
+
+  dehclient:
+    #image: registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient
+    image:
+    container_name: dehclient_ws01
+#    ports:
+#      - ${DEH_CLIENT_EXPOSED_SERVER_PORT}:${DEH_CLIENT_SERVER_PORT}
+    env_file:
+      - .env
+    depends_on:
+      - dehclient-db
+    volumes:
+      - ${PWD}/logs:/logs
+
+volumes:
+  dehclient_db:

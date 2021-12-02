@@ -1,0 +1,261 @@
+**************************
+**** Pre-Requirements ****
+**************************
+
+> Build image from Dockerfile
+docker build ./ -t dehclient-v2:latest
+
+> Docker registry credentials
+user name: Sundaresan.Venkatesan
+Password:
+
+> Download DEHClient project from gitlabs:
+git clone https://gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient.git
+
+> Pull the DEHClient image from the registry.
+Registry: registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:v1
+
+> Start a any DEH Enablers as a container on a given Docker Host: For which Resource Consumption Metrics will be generated.
+e.g., instance of image (demeterengteam/estimate-animal-welfare-condition:candidate)
+sudo docker run -d --name estimate-animal-welfare-condition-ws02 "demeterengteam/estimate-animal-welfare-condition:candidate"
+
+> Edit the .env file to have the instance of
+    DockerHost, RRM & BSE to be used before starting local instance of DEHClient.
+
+> Create Local Instance of DEHClient container
+sudo docker create --name dehclient_ws02 --env-file ./.env registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:v1
+
+sudo docker cp ~/docker_test/ca.pem dehclient_ws04:/app/DEHClientEnabler/resource_monitor
+sudo docker cp ~/docker_test/cert.pem dehclient_ws04:/app/DEHClientEnabler/resource_monitor
+sudo docker cp ~/docker_test/key.pem dehclient_ws04:/app/DEHClientEnabler/resource_monitor
+
+> Start DEH Client Instance
+sudo docker start -i dehclient_ws02
+
+> Get the IP addreess of the DEH Client by
+sudo docker inspect dehclient_ws02
+
+> Request Metrics with UID:
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?uid=609525c337801e241cf99601" | json
+
+> Request Metrics with container name:
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition-ws01" | json
+
+> Request Container list matching filter:
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?name=condition"
+
+filter by name
+curl -X GET "http://172.17.0.7:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?name=animal" | json
+
+filter by status
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?status=running" | json
+
+filter by ancestor
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?ancestor=demeterengteam/estimate-animal-welfare-condition:candidate" | json
+
+
+Request Metrics with invalid uid
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?uid=6062df1537801e241cf995f3" | json
+
+Request Metrics with non existing Container name.
+curl -X GET "http://172.17.0.5:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=non-existing" | json
+
+
+Performance:
+> Request by uid or Name
+& Without register & just look up with RRM & BSE
+
+Response time 10 seconds
+
+*********************************************
+** Meeting with Antonio & Marko : 14/04/21 **
+*********************************************
+Development in progress, features including
+    Runtime configuration for capturing metrics - internally.
+    Runtime configuration for reporting metrics to DEH.
+    Order in which metrics will be sent to DEH.
+
+Updating the document for Module & Enabler Verification Template.
+
+
+APIs:
+
+> Pull Image:
+#############
+> Valid image name & tag
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/pilot4.2-traslator","tag":"candidate"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/pull
+
+"sha256:061f1ee69095e5e50b52db9c834ec99e9a73e569c5bfdbfbc4c540c3174fe349"
+
+> Invalid image name
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/pilot4.2-traslator-invalid","tag":"candidate"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/pull
+
+"Image : demeterengteam/pilot4.2-traslator-invalid with
+tag : candidate not found in registry or low disk space on local host,
+please check the image name & available disk space."
+
+> Invalid tag
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/pilot4.2-traslator23","tag":"candidate123"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/pull
+
+> Invalid image name
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/pilot4.2-traslator23","tag":"candidate123"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/pull
+
+"Image : demeterengteam/pilot4.2-traslator23 with tag : candidate123 not found in registry or
+low disk space on local host, please check the image name & available disk space."
+
+
+> Add uid as label
+####################
+Note : DEH Client validates with RRM if the given UID is valid ie, if the same is
+registered with a DEH resource in RRM before tagging the same with the image locally.
+
+Image : Adding Labels @ runtime
+It's not possible to add a label to an existing image bcz adding a label will change the images checksum and id,
+thus it's no longer the same image.
+But we can build an image based on our existing image with a label added,
+then tag this image with the name of the previously existing image.
+Technically it adds a layer on top of your existing image and thus just "overrides" previous labels
+"""
+
+> invalid UID
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/estimate-animal-welfare-condition",
+"tag":"candidate","labels":{"uid":"610411e8c56e160279440663"}}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/set_label
+
+Response:
+"DEH RRM, resource search result returned success,
+but no resource found/ registered with UID 610411e8c56e160279440663. Skipping label. Check if the UID is registered against a valid DEH resource"
+
+> Valid UID:
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/estimate-animal-welfare-condition",
+"tag":"candidate","labels":{"uid":"610411e8c56e160279440661"}}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/set_label
+
+Response:
+[
+  "{\"stream\":\"Step 1/2 : FROM demeterengteam/estimate-animal-welfare-condition:candidate\"}\r\n",
+  "{\"stream\":\"\\n\"}\r\n",
+  "{\"stream\":\" ---\\u003e b64ef0d5ae43\\n\"}\r\n",
+  "{\"stream\":\"Step 2/2 : LABEL uid=610411e8c56e160279440661  test_tag_today=test_tag_today\"}\r\n",
+  "{\"stream\":\"\\n\"}\r\n",
+  "{\"stream\":\" ---\\u003e Running in da11c8d77b83\\n\"}\r\n",
+  "{\"stream\":\"Removing intermediate container da11c8d77b83\\n\"}\r\n",
+  "{\"stream\":\" ---\\u003e 889d0215ca3b\\n\"}\r\n",
+  "{\"aux\":{\"ID\":\"sha256:889d0215ca3b4c9c9453ef69276f5404689926b987ea01f014eb9bcf58ad81e1\"}}\r\n",
+  "{\"stream\":\"Successfully built 889d0215ca3b\\n\"}\r\n",
+  "{\"stream\":\"Successfully tagged demeterengteam/estimate-animal-welfare-condition:candidate\\n\"}\r\n"
+]
+
+> Invalid image
+curl -i -H "Content-Type: application/json" -X POST -d '{"image":"centos123","tag":"latest","labels":{"uid":"610411e8c56e160279440661"}}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/image/set_label
+
+Reponse:
+"Image : centos123 with tag : latest not found in registry or low disk space on local host,
+please check the image name & available disk space."
+
+
+> Run DEH Resource as a container
+##################################
+> Invalid image name
+curl -i -H "Content-Type: application/json" -X POST -d
+'{"image":"demeterengteam/estimate-animal-welfare-condition-invalid","tag":"candidate","name":"estimate-animal-welfare-condition_demo1"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/container/run
+
+{
+  "message": "Image : demeterengteam/estimate-animal-welfare-conditionss:candidate not found."
+}
+
+> Valid image name but invalid tag
+curl -i -H "Content-Type: application/json" -X POST -d
+'{"image":"demeterengteam/estimate-animal-welfare-condition","tag":"candidate123",
+"name":"estimate-animal-welfare-condition_demo1"}'
+http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/container/run
+
+"Communication with docker socket failed or Docker Image not found or Image with specified tag not found.
+Please check Image & tag Error response : 404 Client Error for
+http://10.0.10.132:2375/v1.41/images/create?tag=candidate123&fromImage=demeterengteam%2Festimate-animal-welfare-condition: Not Found (\"manifest for demeterengteam/estimate-animal-welfare-condition:candidate123 not found: manifest unknown: manifest unknown\") "
+
+> Already existing container name:
+ curl -i -H "Content-Type: application/json" -X
+ POST -d  '{"image":"centos","name":"centos_demo_1"}'
+ http://localhost:5003/api/v1/DEHClientEnabler/ResourceManagement/container/run
+
+"The Container by name estimate-animal-welfare-condition_demo1 already exists, Please use a different Container name"
+
+- valid image & container name:
+{
+  "Status": "Container started successfully !",
+  "container_id": "fde9c084db3a0c69aecf9a62cf0ccdeaae4681fcf279ff0c4c51ffaf61ae3deb",
+  "container_name": "estimate-animal-welfare-condition_demo101"
+}
+
+> Generate Metrics:
+###################
+> Individual metrics by container name/ status
+
+> Metrics by uid
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?uid=610411e8c56e160279440661"
+
+> Metrics by status
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?status=running"
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?status=all"
+
+> Metrics by name
+curl -X GET
+"http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition_demo101"
+
+> Metrics by container ID:
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?id=fde9c084db3a"
+
+> Other useful APIs:
+#####################
+> Get list of all running containers
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/running_containers"
+[
+  "estimate-animal-welfare-condition_demo101",
+  "estimate-animal-welfare-condition_demo18",
+  "estimate-animal-welfare-condition_demo17",
+  "estimate-animal-welfare-condition_demo12",
+  "estimate-animal-welfare-condition_demo7",
+  "estimate-animal-welfare-condition_demo6",
+  "estimate-animal-welfare-condition_demo2"
+]
+
+> Filter
+########
+> filter by label
+curl -X GET
+"http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?label=uid=610411e8c56e160279440661"
+
+[
+  "estimate-animal-welfare-condition_demo101",
+  "estimate-animal-welfare-condition_demo18",
+  "estimate-animal-welfare-condition_demo17",
+  "estimate-animal-welfare-condition_demo12",
+  "estimate-animal-welfare-condition_demo7"
+]
+
+> filter by status
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?status=exited"
+
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?status=running"
+
+curl -X GET
+"http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?ancestor=demeterengteam/estimate-animal-welfare-condition:candidate"
+[
+  "estimate-animal-welfare-condition_demo101",
+  "estimate-animal-welfare-condition_demo18",
+  "estimate-animal-welfare-condition_demo17",
+  "estimate-animal-welfare-condition_demo12",
+  "estimate-animal-welfare-condition_demo7"
+]
+
+
+
+
+

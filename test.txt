@@ -1,0 +1,13 @@
+{
+"_id" : <<Resource ID>>,
+"BSE ID" : ,
+"RRM ID" : ,
+"status" : ,
+"resource_name" : ,
+"image" : ,
+"metadata" : {"latest_metrics":{}
+             }
+"last_updated" : ,
+"cpu_utilization" : [{"<<>>":"<<>>"},{"<<>>":"<<>>"},{"<<>>":"<<>>"}],
+"memory_utilization" : [{"<<>>":"<<>>"},{"<<>>":"<<>>"},{"<<>>":"<<>>"}],
+}

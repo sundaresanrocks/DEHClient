@@ -1,0 +1,84 @@
+<div>
+
+  <button (click)="getAllMetrics()">GetAllMetrics</button>
+
+  <button (click)="getMetricsByRrmId('60bfb454b9cd4e7f9f1e8e1e')">Get Metrics by rrm id</button>
+
+  <button (click)="getMetricsByContainerId('6c84b82b1e3f2a4517161b39710275be2dffecd74e934171f090e2c10ce103188')">Get metrics by container id</button>
+</div>
+
+<!-- <div fxLayout="row wrap" fxLayout.xs="column" fxLayoutAlign="space-around center" fxLayoutGap="25px"> -->
+<div layout-gt-sm="row" tdMediaToggle="gt-xs">
+  <div flex-gt-sm="100">
+  <mat-card>
+    <mat-card-title>Resource Information</mat-card-title>
+    <mat-table #table [dataSource]="dataSource">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> name </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.name}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ipv4">
+        <mat-header-cell *matHeaderCellDef> ipv4 </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.ipv4}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="uptime">
+        <mat-header-cell *matHeaderCellDef> uptime </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.uptime}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="host">
+        <mat-header-cell *matHeaderCellDef> host </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.host}} </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+</mat-card>
+</div>
+</div>
+<div flex-gt-sm="100">
+  <mat-card>
+    <mat-card-title>Resource- CPU Usage Stats</mat-card-title>
+    <mat-divider></mat-divider>
+    <div layout-gt-xs="columns">
+      <div flex-gt-sm="25" layout-gt-xs="column">
+        <div *ngFor="let arr of cpu_res ">
+          <div flex-gt-xs="30">
+            <mat-list dense>
+              <mat-list-item>
+                <!-- <mat-icon mat-list-icon><span class="tc-cyan-500 text-xl">assessment</span></mat-icon> -->
+                <h3 mat-line><span class="mat-display-1 tc-cyan-500">{{arr.name}}</span></h3>
+                <p mat-line><span class="tc-white">Category: Container</span></p>
+              </mat-list-item>
+            </mat-list>
+            <div [style.height.px]="50">
+              <ngx-charts-bar-vertical [scheme]="{ domain: [ '#78909C' ] }" [results]="arr.series"
+                [barPadding]="2" [gradient]="true" [xAxis]="false" [yAxis]="true" [legend]="false"
+                [showXAxisLabel]="false" [showYAxisLabel]="false" [xAxisLabel]="false" [yAxisLabel]="true"
+                (select)="onSelect($event)">
+              </ngx-charts-bar-vertical>
+            </div>
+            <mat-divider></mat-divider>
+          </div>
+        </div>
+      </div>
+      <div flex-gt-sm="75">
+        <div [style.height.px]="400" class="push-top-sm">
+          <!-- <ngx-charts-line-chart [scheme]="{ domain: [ '#4DD0E1', '#BA68C8', '#FF7043' ] }" [results]="cpu_res"
+          [gradient]="gradient" [autoScale]="false" [xAxis]="true" [yAxis]="true" [legend]="true"
+          [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
+          [xAxisTickFormatting]="axisDate">
+        </ngx-charts-line-chart> -->
+        <ngx-charts-line-chart [scheme]="{ domain: [ '#4DD0E1', '#BA68C8', '#FF7043' ] }" [results]="cpu_res"
+        [gradient]="gradient" [autoScale]="false" [xAxis]="true" [yAxis]="true" [legend]="false"
+        [showXAxisLabel]="true" [showYAxisLabel]="true" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
+        [xAxisTickFormatting]="axisDate">
+      </ngx-charts-line-chart>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</div>
