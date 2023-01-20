@@ -1,7 +1,6 @@
 ![](https://portal.ogc.org/files/?artifact_id=92076)
 # DEHClient
-As a core component of DEH, DEHClient functionality is to interfaces with BSE & DEH EnablerHub.
-Enables to gather resource consumption metrics and reports back the data to DEH EnablerHub.
+As a core component of DEH, DEHClient functionality is to interoperate with BSE & DEH to gather resource consumption metrics and reports back the data to DEH EnablerHub.
 
 
 ## Table of contents
@@ -13,8 +12,8 @@ Enables to gather resource consumption metrics and reports back the data to DEH 
 * [**Setup local instance**](#setup-local-instance)
 * [**Run application using docker-compose**](#run-application-using-docker-compose)
 * [**How to use**](#how-to-use)
+* [**Debugging**](#Debugging)
 * [**Endpoints**](#endpoints)
-* [**Usage**](#usage)
 * [**Workaround**](#workaround)
 * [**Support team**](#support-team)
 * [**Status**](#status)
@@ -42,56 +41,10 @@ To make the solution more flexible and easier to maintain, all components inside
 
 ## Features
 
-* DEH Client being a core component of DEH, the main functionality is to generate Resource Consumption Metrics of Enablers deployed as Docker Container on a given Docker Host and report back to DEH.
-
-* DEH Client generated Resource Consumption Metrics will be reported back to DEH periodically.​
-
-* For security, DEH Client establishes a secured channel of communication with Docker Host.​
-
-* Configurable option to enable user to choose between 
-
-  - Option 1: Secure connection Docker Host & DEH Client. or,
-
-  - Option 2: Open connection between Docker Host & DEH Client.
-
-* Container attributes tracked as part of metrics includes.​
-
-	Volume = Memory Usage & CPU Usage.​
-
-	Time Usage = Duration of running containers.
-
-* Generate Resource Consumption Metrics for a requeted Container/s of DEH Resources deployed on Docker Host.
-
-* Periodically Report the generated metrics data back to Resource Registry Management and the metrics thus reported are visualized in DEH Dashboard.
-
-* Get Containers deployed on Docker Host matching one of the filters below:
-    
-  - name=<<"part of container name as string">>​.
-      
-  - Status=<<"based on one of the container status restarting, running, paused, exited">>​.
-    
-  - ancestor=<<"Instances of an image e.g, demeterengteam/estimate-animal-welfare-condition:candidate">>.
-
-* Get a given Container's log lines:
-  
-  - pattern=<<"part of container log">>​.
-  
-  - tail=<<"last few lines">>​.
-
-  - pattern & tail parameters can also be used in combination.
-
- Note :
-  * Docker Host: Where DEH Enablers/ Containers will be deployed.​
-
-	Enabler e.g., estimate-animal-welfare-condition:candidate​
-
-	& Container Name: estimate-animal-welfare-pilot1​
-
-  * Docker Host is the Host running Docker daemon service & the same is exposed as Docker Engine API. Where DEH Resources will be deployed as service containers.
-
-  * DEH Enablers - DEH Solution Developed as Docker Images and uploaded to Registry.
-
-  * All DEH Resources (Docker Image) has to be associated with an UID - Unique 
+* Resource Discovery.
+* Interoperability with DEH RRM & BSE.
+* Generate resource consumption metrics of DEH Resource Containers and POST data periodically to RRM. 
+* This metrics data is then visualized with DEH Dashboard.
 
 
 ## Requirements
@@ -102,48 +55,143 @@ To make the solution more flexible and easier to maintain, all components inside
 
 ## References
 
+***  Brief description of Terms used across this document ***
+
+* Docker Host: This is where you will be running DEH Service Containers. Once set up DEH Client will monitor these Containers, report back metrics periodically to DEH and the same will be visualized in DEH Dashboard.
+
+* DEH Client: Communicates with Docker Host, generates Metrics for running DEH Service Containers, and reports back Metrics to DEH RRM.
+
+* Secured Communication: Please refer to the attached document, <<HowToCreateSecureChannels_v2.pdf>> for more information on how to set up Docker Host and DEH Client over a secured channel.
+
 * DEH Dashboard:
-	Gitlab Documentation: https://gitlab.com/demeterproject/wp3/demeterenablerhub/dehdashboard
+	Gitlab Documentation: https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehdashboard
 
 * DEH Client.
-	Gitlab Documentation: https://gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient
+	Gitlab Documentation: https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehclient
 
 * DEH RRM.
-	Gitlab Documentation: https://gitlab.com/demeterproject/wp3/demeterenablerhub/resourceregistrymanagement
+	Gitlab Documentation: https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/resourceregistrymanagement
 
 	API Documentation: https://deh-demeter.eng.it/swagger-ui/index.html?configUrl=/api-docs/swagger-config#/
 
 * BSE.
-	Gitlab Documentation: https://gitlab.com/demeterproject/wp3/bse/bse/-/blob/master/README.md
+	Gitlab Documentation: https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/bse/bse/-/blob/master/README.md
 
-	API Documentation: https://vm1.test.h2020-demeter-cloud.eu/api/swagger/
+	API Documentation Test Instance : https://vm1.test.h2020-demeter-cloud.eu/api/swagger/
 
+    API Documentation Production Instance : https://bse.h2020-demeter-cloud.eu/api/swagger/
 
-## Pre-Requisites: 
+## Prerequisites: 
 
 Do these steps before starting DEHClient as a container.
 
-* Step 1: Download DEHClient project from gitlabs:
+* Step 1: Download the DEHClient project from GitLab:
 
-		git clone https://gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient.git
+    git clone https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehclient.git
 
- 	Pull DEH Client Docker Image locally from the registry : 
-	 
-		docker pull registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:latest
+* Step 2: Configure and set up Docker Host to communicate with DEH Client.
 
-* Step 2: Edit .env file and set below mentioned attributes like, 
+    Note: Users can choose how they intend to establish communication between Docker Host & DEH Client.
+    
+    This can be done by setting the below-mentioned attribute in the .env file before starting DEH Client Container.
+    
+    For open communication 
+    
+    > update attriute 'secure_connection = False' in .env file.  
+    
+    or 
+    
+    For secured connection 
+    
+    > update attriute 'secure_connection = True' in .env file. 
 
-  - Set medium/ mode of communication between Docker Host & DEH Client.
-  	
-	  Option 1 : set secure_connection=True if you intend to establish secured communication between Docker Host & DEH Client via TLS server / client certificates.
+    Based on the choice made perform the below steps.
 
-      Reference Document : dehclient/Securing_Docker_Engine_API.pdf
+			$ cd dehclient
 
-	  Please refer to the section of the document - How to enable Docker Engine API on Docker Host: Secured. 
+			$ vi ./.env
+            
+  
+  	- For Open communication, Set in .env
+    
+    > update attriute 'secure_connection = False' in .env file.
 
-      Option 2: set secure_connection=False if you intend to keep communication between Docker Host & DEH Client open.
+    - Perform these steps on the Docker Host:
+        
+            $ sudo vi /lib/systemd/system/docker.service
+        
+		- Update: Configure to expose docker daemon service as API (Docker Engine API) over a specific port.
 
-      Please refer to the section of the document - How to enable Docker Engine API on Docker Host: Open Connection - Unsecured/ Open
+		  DEH Client will use this exposed Docker Engine API to  communicate and track resource consumption data of Docker Containers running on this Docker Host. Note : replace in the below line Docker_Host_IPV4 with IPV4 address. 
+        
+            ExecStart=/usr/bin/dockerd -H fd:// -H tcp://Docker_Host_IPV4:2375
+        
+        - Restart Service: 
+        
+            $ sudo systemctl daemon-reload
+            
+            $ sudo service docker restart
+            
+            $ sudo systemctl restart docker.service
+
+        - Test if Docker Engine API is accessible over the exposed port, From a remote Docker host or on the same machine
+
+          GET request, get Docker Engine Version number of remote Docker Host.
+        
+			Request: 
+
+				$ curl "http://<<DockerHostIP/ Docker Engine Host IP>>:2375/version"
+        
+        	Or
+        
+            	$ wget -q -O - http://<<DockerHostIP/ Docker Engine Host IP>>:2375/version 
+
+        	Response:
+
+				{ "Platform": { "Name": "" }, "Components": [
+				{ "Name": "Engine",
+				"Version": "20.10.7",
+				"Details": { "ApiVersion": "1.41", "Arch": "amd64",
+				"BuildTime": "2021-08-04T19:07:47.000000000+00:00",
+				"Experimental": "false", "GitCommit": "20.10.7-0ubuntu1~20.04.1",
+				"GoVersion": "go1.13.8", "KernelVersion": "5.4.0-80-generic",
+				"MinAPIVersion": "1.12", "Os": "linux" } ], ... }
+
+    	Note here, that we have successfully enabled remote access to docker services of Docker Host. 
+
+  - For Encrypted/ Secured communication,
+
+    - Follow the instructions from the document -- HowToCreateSecureChannels_v2.pdf under section -- How to enable Docker Engine API on Docker Host: Secured.
+
+	- Update the docker-compose.yml file with the local path of the CA cert files and the path where you intend to copy the same in the DEH Client container. 
+
+			volumes:
+				- ${PWD}/logs:/logs
+				- /app/DEHClientEnabler/resource_monitor/ca.pem:/app/DEHClientEnabler/resource_monitor/ca.pem
+				- /app/DEHClientEnabler/resource_monitor/key.pem:/app/DEHClientEnabler/resource_monitor/key.pem
+				- /app/DEHClientEnabler/resource_monitor/cert.pem:/app/DEHClientEnabler/resource_monitor/cert.pem
+
+* Step 3: Once Docker Host is setup, edit .env file and set below mentioned attributes,
+
+  - Update Docker Host info. Set Docker Host Name & Docker Host IPV4 and Doker Engine exposed port number.
+  
+    docker_hostname=[[DockerHost Name]]
+
+    docker_host=https://[[Docker Host IPV4]]:[[Port Number]]/
+
+    e.g.
+
+    docker_hostname=demeter-dev-1
+    
+    docker_host=https://10.0.10.132:2375/
+
+  - Set/ configure the mode of communication between Docker Host & DEH Client.
+    
+      Option 1 : Set secure_connection=True if you intend to establish secured communication between Docker Host & DEH Client via TLS server/client certificates.
+
+      Option 2: Set secure_connection=False if you intend to keep communication between Docker Host & DEH Client open.
+
+      Note : By default, this is set to False ie secure_connection=False
 
   - Set option for Auto Registration with BSE.
     
@@ -151,205 +199,304 @@ Do these steps before starting DEHClient as a container.
 
       Option 2: auto_register_bse=False if you do not want DEH Client to automatically register container/s to BSE.
 
+      Note : By default, this is set to False ie auto_register_bse=False
+
+  - Update DEH Account Details: Will be used to communicating with BSE & RRM - user with a Provider access privilege.
+
+	  DEH_ACCOUNT_MAIL=[[User Name]]
+
+	  DEH_ACCOUNT_PASS=[[Password]]
+
   - Set instance of ACS, DEH RRM & BSE.
       
-      Note: ACS, RRM & BSE instances configured in .env will be used by DEHClient to generate authentication & authorization token, register Containers & look up for Container's registration data. The below parameters in the .env file need to be set before starting DEH Client as a container.
+      Note: ACS, RRM & BSE instances configured in .env will be used by DEHClient to generate authentication & authorization tokens, register Containers & look up for Container's registration data. The below parameters in the .env file need to be set before starting DEH Client as a container.
 
-	- DEH RRM environment variables: 
+    - DEH RRM environment variables: 
 
-	  DEHEnablerHub_Host	--> DEH RRM instance.
+    DEHEnablerHub_Host  --> DEH RRM instance.
 
-	  DEH_ACCOUNT_MAIL   	--> This DEH account(with provider access)will be used to generate access tokens, To interface with DEH RRM & BSE endpoints. 
+    DEH_ACCOUNT_MAIL    --> This DEH account(with provider access)will be used to generate access tokens, To interface with DEH RRM & BSE endpoints. 
 
-	  DEH_ACCOUNT_PASS   	--> DEH account password.
+    DEH_ACCOUNT_PASS    --> DEH account password.
 
-	  ACS_Token_Request_Url --> ACS instance.
+    ACS_Token_Request_Url --> ACS instance.
 
-	  Capability_Token_Url 	--> Capability Token request Url.
+    Capability_Token_Url    --> Capability Token request Url.
 
-	  DEH_RRM_Proxy_URL    	--> DEH RRM Proxy URL.
+    DEH_RRM_Proxy_URL       --> DEH RRM Proxy URL.
 
-	- BSE environment variables:
+    - BSE environment variables:
 
-	  DEH_BSE_Host					--> BSE instance.
+    DEH_BSE_Host                    --> BSE instance.
 
-	  DEH_BSE_ACS_Token_Request_Url	--> ACS instance.
+    DEH_BSE_ACS_Token_Request_Url   --> ACS instance.
 
-	  DEH_BSE_Capability_Token_Url	--> Capability Token request Url.
-	  
-	  DEH_BSE_Proxy_URL				--> BSE Proxy URL.
+    DEH_BSE_Capability_Token_Url    --> Capability Token request Url.
+    
+    DEH_BSE_Proxy_URL               --> BSE Proxy URL.
 
-* Step 3: Setup Docker Host to communicate with DEH Client, Based on the attribute 'secure_connection' value set in .env (Refer : Step 2)
-  
-  Reference Document : dehclient/Securing_Docker_Engine_API.pdf
+* Step 4: To start tracking resource consumption metrics.
 
-  - Open communication, 
-    - Warning: It's strongly recommended to set the communication secured. With an open connection, there is a high risk as we expose Docker Admin level access / Docker Engine API over TCP.
-
-    - Follow the instructions from the document -- Securing Docker Engine API.pdf under section - How to enable Docker Engine API on Docker Host: Open Connection - Unsecured/ Open.
-
-  - Encrypted/ Secured communication,
-    - Follow the instructions from the document -- Securing Docker Engine API.pdf under section - How to enable Docker Engine API on Docker Host: Secured.
-
-
-* Step 4: Docker pull any DEH Resource (Docker Image) from the registry, which you intend to deploy as DEH service containers on Docker Host.
-DEH Client once deployed & set up, will monitor these container/s and report the metrics data to DEH RRM periodically. 
+	Docker pull any DEH Resource (Docker Image) from the registry, which you intend to deploy as DEH service containers on Docker Host.
+	DEH Client once deployed & set up, will monitor these container/s and report the metrics data to DEH RRM periodically. 
 
   - Manually pull by issuing Docker Pull command
 
-    sudo docker pull demeterengteam/estimate-animal-welfare-condition:candidate
+        $ docker pull demeterengteam/estimate-animal-welfare-condition:candidate
 
-  - Use DEH Client exposed API to pull the Docker Image on to Docker Host. (Note: Post deployment of DEH Client)
-    
-	Note: DEH Client will pull the Docker Image locally onto the Docker Host, not on the remote DEH Client.
-	Request : curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/estimate-animal-welfare-condition:candidate","tag":"candidate"}' http://<<DEH Client IP>>:<<DEH Client Port>>/api/v1/DEHClientEnabler/ResourceManagement/image/pull
+    or
 
-	Response : 
-		agement/image/pull
-		HTTP/1.0 200 OK
-		Content-Type: application/json
-		Content-Length: 74
-		Server: Werkzeug/1.0.1 Python/3.8.10
-		Date: Thu, 02 Sep 2021 00:15:27 GMT
+  - Use DEH Client exposed API to pull the Docker Image on to Docker Host. 
+  	
+	Note: Try Post deployment of DEH Client. DEH Client will pull the Docker Image locally onto the Docker Host, not on the remote DEH Client.
 
-		"sha256:061f1ee69095e5e50b52db9c834ec99e9a73e569c5bfdbfbc4c540c3174fe349"
+    Request : 
+        
+        curl -i -H "Content-Type: application/json" -X POST -d '{"image":"demeterengteam/estimate-animal-welfare-condition:candidate",  "tag":"candidate"}' http://<<DEH Client IP>>:<<DEH Client Port>>/api/v1/DEHClientEnabler/ResourceManagement/image/pull
 
-	ie sha256 hash of Docker Image if pull success.
+    Response : 
 
-* Step 5: Associate UID ie RRM registration ID to locally downloaded/ pulled Docker Image.
+        agement/image/pull
+        HTTP/1.0 200 OK
+        Content-Type: application/json
+        Content-Length: 74
+        Server: Werkzeug/1.0.1 Python/3.8.10
+        Date: Thu, 02 Sep 2021 00:15:27 GMT
+
+        "sha256:061f1ee69095e5e50b52db9c834ec99e9a73e569c5bfdbfbc4c540c3174fe349"
+
+    ie sha256 hash of Docker Image if pull success.
+
+* Step 5: Associate UID ie RRM registration ID to locally downloaded/ pulled DEH Resource Docker Image.
 
   - Note: This is an important step, Each DEH Resource/Enabler across Demeter is identified by a unique ID called UID /RRM ID ie unique registration ID generated when registering with RRM. 
-
-  - Challenge:
-
-    - There is no streamlined process on how a user can register the DEH Resource with RRM and validate if the resource is already registered.
-  
-    - If persisted incorrectly, this might lead to a mismatch of DEH Resource/s being tracked. 
-
-  - Interim solution:
-
-    - As a workaround until the process of registration is streamlined, is to have the pilot of DEH Client manually associate UID to the DEH Resource (downloaded in Step 3:) manually before starting DEH Resource as container/s. 
-
-    - Add UID as docker label to already pulled image, so any container/s created from this image will have UID associated and don't have to do for all the container instances. This can be done using the Docker command or using DEH Client API.
     
-    - Before associated UID as a label, validate using DEH RRM API if the UID to be associated is valid i.e. registered to appropriate DEH Resource. 
-	Some Useful RRM Endpoints to do this "Search for a DEH Resource by Filters", "List all DEH Resources"  and "Find DEH Resource by uid". Please refer deh-resource-api section under DEH RRM swagger documentation, link below
+    Some Useful RRM Endpoints to do this "Search for a DEH Resource by Filters", "List all DEH Resources"  and "Find DEH Resource by uid". Please refer deh-resource-api section under DEH RRM swagger documentation, link below
     
-    	https://deh-demeter.eng.it/swagger-ui/index.html?configUrl=/api-docs/swagger-config
+        https://deh-demeter.eng.it/swagger-ui/index.html?configUrl=/api-docs/swagger-config
 
-		echo "FROM [[DEH Resource:tag]]" | sudo docker build --label uid="[[UID]]" -t "[[DEH Resource:tag]]" -
+        echo "FROM [[DEH Resource:tag]]" | sudo docker build --label uid="[[UID]]" -t "[[DEH Resource:tag]]" -
 
-      	e.g
+        e.g
 
-    	echo "FROM demeterengteam/estimate-animal-welfare-condition:candidate" | sudo docker build --label uid="610411e8c56e160279440661" -t "demeterengteam/estimate-animal-welfare-condition:candidate" -
+        echo "FROM demeterengteam/estimate-animal-welfare-condition:candidate" | docker build --label uid="601ad929cc5e1504df125b04" -t "demeterengteam/estimate-animal-welfare-condition:candidate" -
 
 
-  	Note : UID - 610411e8c56e160279440661 registration ID of a test DEH Resource in production environment.
+  - Note : UID - 601ad929cc5e1504df125b04 registration ID of a test DEH Resource in production environment.
 
-* Deploy/run DEH Enabler: estimate-animal-welfare-condition:candidate, as a container on Docker Host.
-	
-	$ sudo docker run -d --name <<"Container Name">> "demeterengteam/estimate-animal-welfare-condition:candidate"
+* Step 6: Deploy/run DEH Enabler: estimate-animal-welfare-condition:candidate, as a container on Docker Host.
+    
+        $ docker run -d --name <<"Container Name">> "demeterengteam/estimate-animal-welfare-condition:candidate"
 
+* Step 6: Validate if UID is associated with local DEH Resource Docker Image & DEH Resource Container.
+
+        $ docker inspect <<"DEH Resource Docker Image Name">>
+        
+    and
+
+        $ docker inspect <<"DEH Resource Docker Container Name">>   
+
+    Response: Validate if the UID is added as a label attribute.
+
+        "Image": "sha256:a91c7ea76a8644bc7936f23cbb99dc87046b577b305938417678c8a4283b733a",
+        "Volumes": null,
+        "WorkingDir": "/usr/local/tomcat",
+        "Entrypoint": null,
+        "OnBuild": null,
+        "Labels": {
+            "com.docker.compose.config-hash": "691f76150dddc59f81a69ee1b85a6212cc020592cee8fc69e10402932e934353",
+            "com.docker.compose.container-number": "1",
+            "com.docker.compose.oneoff": "False",
+            "com.docker.compose.project": "estimateanimalwelfareconditionmodule",
+            "com.docker.compose.project.config_files": "docker-compose.yml",
+            "com.docker.compose.project.working_dir": "C:\\Users\\luidicorra\\Desktop\\EstimateAnimalWelfareConditionModule",
+            "com.docker.compose.service": "animalwelfare",
+            "com.docker.compose.version": "1.29.0",
+            "uid": "601ad929cc5e1504df125b04"
+        }
 
 ## Setup local instance
 
-1. Login into the registry 
+* Step 1: Download the  DEH Client project from GitLab.
 
-	$ sudo docker login registry.gitlab.com
+        git clone https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehclient.git
+        
+* Step 2: Ensure you have a DEH account with provider access and configured appropriately in .env before starting the DEH Client solution as Docker Container.
 
-  Provide your credentials
+* Step 3: Update DEH Client related attributes in the .env file (Refer to PreRequisites section - Step 2 of the Readme file).
 
-  Successful Login Respons: Login Succeeded
+        Docker Host.
+        DEH Client API exposed port.
+        secure_connection.
+        DEH Account.
+        RRM instance. 
+        BSE instance.
 
-2. Pull DEH Client Docker Image from the registry :
-
-	$ docker image pull registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:latest
-
-3. Download the  DEH Client project from GitLab.
-
-	git@gitlab.com:demeterproject/wp3/demeterenablerhub/dehclient.git
-
-4. Get a DEH account with provider access and have them updated in the .env file.
-
-5. Update .env file with relevant attributes like (Refer PreRequisites section - Step 2 of the readme file).
-    Docker Host.
-	DEH Client API exposed port.
-	DEH Account.
-    RRM instance. 
-    BSE instance.
-
-6. Update docker-compose.yml with the locally downloaded DEH Client Image Name like:
-  	dehclient:
-    	image: registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:latest
-
+* Step 4: DEH Client once deployed locally, automatically discovers Docker Containers deployed on the configured Docker Host, generates metrics and POSTs periodically to DEH.
 
 ### Run application using docker-compose
 
-* Based on the choice made for open or secured communication between Docker Host and DEH Client
+* Based on the choice made for open or secured communication between Docker Host and DEH Client.
 
 Option 1: Open Communication: 
 
-	* All environment variables related to DEH Client can be updated in `.env` file.
-	* Run `docker-compose up` to run Docker Compose with server image and MongoDB.
-	* If you want to run containers in background run next command `docker-compose up -d`
+    * Download the  DEH Client project from GitLab.
+        
+            $ git clone https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehclient.git
+
+    * Update all environment variables related to DEH Client can be updated in `.env` file.
+        
+        For open communication between Docker Host & DEH Client, set 
+        
+        secure_connection=False
+
+    * Set up Docker Host to communicate with DEH Client, please refer Pre-Requisites section above, Step 2.
+
+    * Run `docker-compose up` to run Docker Compose with server image and MongoDB.
+
+    * If you want to run DEH Client as a container in the background, run the next command `docker-compose up -d`
+
+            $ cd ./dehclient/
+
+            $ docker-compose up -d | docker-compose logs -f
 
 
 Option 2: Secured Communication:
 
-	* Step 1: Login into the registry 
+    * Download the  DEH Client project from GitLab.
+        
+            $ git clone https://gitlab.h2020-demeter-cloud.eu/demeterproject/wp3/demeterenablerhub/dehclient.git
 
-		$ sudo docker login registry.gitlab.com
+    * Update all environment variables related to DEH Client can be updated in `.env` file.
 
-		Provide your credentials
+      For open communication between Docker Host & DEH Client, set
 
-		Successful Login Respons: Login Succeeded
+        secure_connection=True
 
-	* Step 2: Pull DEH Client Docker Image from the registry :
-
-		$ docker image pull registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:latest
-
-	* Step 3: Pull mongo:4.2.8 Image and start a mongo instance as a Docker Container:
-
-		$ docker image pull mongo:4.2.8
-		$ docker run -d --name dehclient-db "mongo:4.2.8"
-
-	* Step 4: Update mongo DB details in the .env vaiable : MongoDB variables section.
-		e.g,.
-		MONGO_DB_PORT=27017
-		MONGO_DB_EXPOSED_PORT=27017
-		MONGODB_DATABASE=DEHClient
-		MONGODB_HOST=dehclient_db
+    * Create CA certificates and configure Docker Host to accept only secured connections. Follow the instructions from the document attached (HowToCreateSecureChannels_v2.pdf).    
 
 
-	* Step 5: Create DEH Client container, supplying env variables as a file: 
-	
-		docker create --name <<"ContainerName">> --env-file <<"env file name">> registry.gitlab.com/demeterproject/wp3/demeterenablerhub/dehclient:v1
+    * Update `docker-compose.yml` to copy client certificates to DEH Client container before starting the same. Please ignore this step if you want to opt for open communication between Docker Host & DEH Client.
 
-	* Step 6: Copy relevant Client certificates to the container before starting the container. 
-	
-		Note: Please refer to the document "Securing Docker Engine API.pdf" to establish a secure connection between Docker Client & Docker Host.
+        Note: For example, you have the required certificate files under dir: `/etc/ssl/certs/`
 
-		$ docker cp <<"CertPath">>/ca.pem <<"ContainerName">>:/app/DEHClientEnabler/resource_monitor
+        $ vi docker-compose.yml
 
-		$ docker cp <<"CertPath">>/key.pem <<"ContainerName">>:/app/DEHClientEnabler/resource_monitor
+            volumes:
+            - ${PWD}/logs:/logs
+            - /etc/ssl/certs/ca.pem:/app/DEHClientEnabler/resource_monitor/ca.pem
+            - /etc/ssl/certs/key.pem:/app/DEHClientEnabler/resource_monitor/key.pem
+            - /etc/ssl/certs/cert.pem:/app/DEHClientEnabler/resource_monitor/cert.pem
 
-		$ docker cp <<"CertPath">>/cert.pem <<"ContainerName">>:/app/DEHClientEnabler/resource_monitor
 
-	* Step 7: Start DEH Client as a container (-i in case of interactive mode)
-	
-		$ sudo docker start -i <<"ContainerName">>
+    * Run `docker-compose up` to run Docker Compose with server image and MongoDB.
 
+    * If you want to run DEH Client as a container in the background, run the next command `docker-compose up -d`
+
+            $ cd ./dehclient/
+
+            $ docker-compose up -d | docker-compose logs -f
 
 ## How to use
 
-* Once your local instance of DEH Client is up, you can use DEHClient exposed APIs to track/generate Resource Consumption Metrics of any Containers which are hosted on the given Docker Host.
+* Once deployed, DEH Client will periodically (every 20 seconds) will discover and generate metrics of all DEH Resource containers running on the Docker Host which are associated with UID.
+
+* Thus generated metrics data will be written/updated to the MongoDB instance running along.(DB: DEHClient & metrics).
+
+* DEH Client will POST the metrics periodically to RRM via RRM metrics API. Records for those containers which are successfully POSTed are deleted from MongoDB (Memory Management).
+
+    Note 1: DEH Client will attempt to POST metrics to RRM once in every 8 hours. Till then DEH Client will write/update metrics data for all containers in MongoDB.
+
+    Note 2: Records for those containers which were failed to POST to RRM, due to reasons like Temporary issues connecting to RRM, etc, will not be deleted from MongoDB and will be reattempted to POST to the next try.
+
+    Note 3: Records older than 1 day and failed to be posted to RRM will be deleted from MongoDB.  
+
+* You can also use DEHClient exposed APIs to track/generate Resource Consumption Metrics of any Containers which are hosted on the given Docker Host.
+
+## Debugging:
+
+###   Pre-Deployment Issues: Common issues which could occur during DEH Client deployment:
+
+ - Common issues and possible resolution: 
+
+   - Issue 1: Unable to pull DEH Client image from GitLabs registry because of permission issues or unable to download the image.
+
+     Possible Resolution: The issue may be that you have logged into a different registry. Do the following steps
+
+     - First, log out from the any registry
+
+            $ docker logout
+            $ docker login registry.gitlab.com
+
+     - This will prompt for login. With valid credentials, the login is successful.
+     - Then attempt to run docker-compose to start DEH Client Container.
+
+
+   - Issue 2: Set up Docker Host, Failed to restart DockerD service after updating /lib/systemd/system/docker.service
+
+     Possible Resolution: 
+     
+     - Ensure the Docker service file is updated as below:
+
+            $ sudo vi /lib/systemd/system/docker.service
+
+     - Update dockerd as below:
+
+            ExecStart=dockerd -H fd:// -H tcp://<<Docker Host IPV4>>:2375
+
+     - Restart Service:
+    
+            $ sudo systemctl daemon-reload
+
+            $ sudo service docker restart
+
+            $ sudo systemctl restart docker.service
+
+     - Post restart, test if Docker Engine API is accessible over the exposed port, From a remote host, or on the same machine
+
+     - GET request, get Docker Engine Version number of remote Docker Host.
+    
+     - Request:
+
+            $ curl "http://<<DockerHostIP/ Docker Engine Host IP>>:2375/version"
+
+     - Ensure the port number in this case 2375 is open and not used by another service. 
+
+
+###   Post Deployment Issues: Once deployed, You can use DEH Client's exposed APIs to:
+
+  - Get the list of all Running containers on configured Docker Host.
+
+    e.g.
+
+        curl -X GET "http://[[DEH Client Container IPV4]]:[[DEH Client Port]]/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?status=running"
+        
+    
+  - Monitor DEH Client container logs manually or use DEH Client log parser exposed API to look for logs
+
+    e.g.
+
+        curl -X GET "http://[[DEH Client Container IPV4]]:[[DEH Client Port]]/api/v1/DEHClientEnabler/ResourceConsumption/get_container_logs?container=[[DEH Client Container ID]]&pattern=ERROR"
+
+    or
+
+        curl -X GET "http://[[DEH Client Container IPV4]]:[[DEH Client Port]]/api/v1/DEHClientEnabler/ResourceConsumption/get_container_logs?container=[[DEH Client Container ID]]&pattern=POST&tail=100"
+
+    or
+
+        curl -X GET "http://[[DEH Client Container IPV4]]:[[DEH Client Port]]/api/v1/DEHClientEnabler/ResourceConsumption/get_container_logs?container=[[DEH Client Container ID]]&pattern=POST&tail=100"
+
+
+Note: You can use log parsing API to explore logs of other Docker Containers running on Docker Host. Just replace [[DEH Client Container ID]] in the GET request with the Docker ID/ Name of the respective Docker Container.
 
 
 ## Endpoints
 
 * Use with request like:
 
-  Syntax : curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/<<"endpoint">>"
+  	Syntax : 
+	  
+	curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/<<"endpoint">>"
 
 
 **List of endpoints**
@@ -363,95 +510,6 @@ Option 2: Secured Communication:
 | **/ResourceConsumption/get_resources_filter?status=** | **GET** | Get list of Containers matching filter.|Parameter: status (running, exited, restarting, paused) |  List of all Containers with given status |
 | **/ResourceConsumption/get_resources_filter?ancestor=** | **GET** | Get list of Containers matching filter.|Parameter: ancestor (image name or id) | Get List of Containers which are instances of the given image.  |
 
-
-## Usage
-
-* If in .env file auto_register=yes,
-
-	Case 1: If GET metrics request by UID, 
-	
-	Request: curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?uid=605f580337801e241cf995ec" | json	
-	
-	- Stages	
-		
-	 	- Get Container Name associated with UID from RRM, Get RRM info.
-
-  		- Identify if corresponding Container is hosted on the given Docker Host.
-
-  		- Check if the Container is registered with BSE.
-
-  		- if not registered, auto register with BSE & Get BSE info.
-
-  		- Produce requested Container's Resource Consumption Metrics.
-		
-		
-	Case 2: If GET metrics request by Container Name,
-	
-	Request: curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition12" | json
-
-	- Stages	
-		
-  		- Identify if corresponding Container is hosted on the given Docker Host.
-
-  		- Check if the Container is registered with DEH RRM & BSE.
-
-  		- if not registered, auto register with DEH RRM & BSE, Get RRM & BSE info.
-
-  		- Produce requested Container's Resource Consumption Metrics.
-
-		
-* If in .env file auto_register=no,
-
-	Case 1: If GET metrics request by UID, 
-	
-	Request: curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?uid=605f580337801e241cf995ec" | json	
-	
-	- Stages	
-		
-	 	- Get Container Name associated with UID from RRM, Get RRM info.
-
-  		- Identify if corresponding Container is hosted on the given Docker Host.
-
-  		- Check if the Container is registered with BSE, Get BSE info.
-
-  		- Produce requested Container's Resource Consumption Metrics.
-		
-		
-	Case 2: If GET metrics request by Container Name,
-	
-	Request: curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition12" | json
-
-	- Stages	
-		
-  		- Identify if corresponding Container is hosted on the given Docker Host.
-
-  		- Check if the Container is registered with DEH RRM & BSE, Get RRM & BSE info.
-
-  		- Produce requested Container's Resource Consumption Metrics.
-	
-
-* Get list of Containers matching filter,
-
-  - Filter by name:
-
-	Request : curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?name=animal-welfare"
-	
-	Response : 
-			["estimate-animal-welfare-condition13", 
-			"estimate-animal-welfare-condition12", 
-			"estimate-animal-welfare-condition11", 
-			"estimate-animal-welfare-condition-v1", 
-			"estimate-animal-welfare-condition10", 
-			"estimate-animal-welfare-condition9"]
-
-
-  - Filter by status of the container : Valid Container Status (running, exited, restarting, paused)
-	
-	Request : curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?status=running"
-
-  - Filter by ancestor (List all instances/ Containers of the image given)
-	
-	Request: curl -X GET "http://<<"container_ip">>:<<"port">>/api/v1/DEHClientEnabler/ResourceConsumption/get_resources_filter?ancestor=demeterengteam/estimate-animal-welfare-condition:candidate"
 
 ## Other Information 
 
@@ -496,30 +554,6 @@ Option 2: Secured Communication:
 			"date_password": "2021-01-27T12:23:26.000Z",
 			"enabled": true,
 			"admin": false}}
-
-* Establish secured communication between Docker Host & DEHClient. Please refer to the document "Securing Docker Engine API.pdf" to establish a secure connection between Docker Client & Docker Host.
-
-  - On Docker Host, Make the Docker daemon only accept connections from clients providing a certificate trusted by your CA and port.
-
-	$ sudo vi /lib/systemd/system/docker.service 
-
-	Update the docker.service file as below: 
-
-	ExecStart=dockerd --tlsverify --tlscacert=<<"CertPath">>/ca.pem --tlscert=<<"CertPath">>/server-cert.pem --tlskey=<<"CertPath">>/server-key.pem -H=0.0.0.0:2376 
-
-  - Restart service: 
-
-	$ sudo systemctl daemon-reload 
-
-	$ sudo service docker restart 
-
-	$ sudo systemctl restart docker.service
-
-  - To test if the connection is successful: From a remote docker CLI or Client
-	
-	$ docker --tlsverify --tlscacert=<<"CertPath">>/ca.pem --tlscert=<<"CertPath">>/cert.pem --tlskey=<<"CertPath">>/key.pem -H=$DOCKER_DAEMON_HOST:2376 version
-	
-	Note : To test from a remote docker CLI or Client, copy these cert files ie ca.pem, cert.pem & key.pem to the Client and try connecting to Docker Host CLI.
 
 ## Workaround 
 
