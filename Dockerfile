@@ -5,9 +5,9 @@ LABEL Description="This image is used to invoke DEHClient Enabler api"
 MAINTAINER Sundaresan "sundaresan.venkatesan@wit.ie"
 
 RUN apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && apt-get install -y python3.6 python3.6-dev python3-pip
+    apt-get update && apt-get install -y python3.8 python3.8-dev python3-pip
 
-RUN ln -sfn /usr/bin/python3.6 /usr/bin/python3 && ln -sfn /usr/bin/python3 /usr/bin/python && ln -sfn /usr/bin/pip3 /usr/bin/pip
+RUN ln -sfn /usr/bin/python3.8 /usr/bin/python3 && ln -sfn /usr/bin/python3 /usr/bin/python && ln -sfn /usr/bin/pip3 /usr/bin/pip
 
 RUN mkdir -p /app/
 
@@ -26,6 +26,6 @@ WORKDIR /app/DEHClientEnabler/
 
 ENV PYTHONPATH="$PYTHONPATH:/app/DEHClientEnabler/resource_monitor/"
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 ENTRYPOINT ["python3", "/app/DEHClientEnabler/resource_monitor/main.py"]
