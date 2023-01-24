@@ -12,7 +12,7 @@ services:
       - dehclient_db:/data/configdb
 
   dehclient:
-    image: dehclient:v1
+    image: gitlab.h2020-demeter-cloud.eu:5050/demeterproject/wp3/demeterenablerhub/dehclient:v3
     container_name: dehclient_ws01
 #    ports:
 #      - ${DEH_CLIENT_EXPOSED_SERVER_PORT}:${DEH_CLIENT_SERVER_PORT}
