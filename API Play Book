@@ -1,17 +1,23 @@
 >>>> List Of DEHClient Exposed APIs:
 ####################################
+
+Note: In the below examples substitute/ replace the localhost with IPV4 address of DEHClient Container.
+
+use below command to get IPV4 address of any container.
+
+>> sudo docker inspect <<DEH Client Container ID>>
+
 >> Generate Metrics: By Container Name or ID & By Container's status
 
 > Metrics by uid
-curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?uid=610411e8c56e160279440661"
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?uid=601ad929cc5e1504df125b04"
 
 > Metrics by status
 curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?status=running"
 curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/metrics?status=all"
 
 > Metrics by name
-curl -X GET
-"http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition_demo101"
+curl -X GET "http://localhost:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?name=estimate-animal-welfare-condition_demo101"
 
 > Metrics by container ID:
 curl -X GET "http://172.18.0.3:5003/api/v1/DEHClientEnabler/ResourceConsumption/individual/metrics?id=fde9c084db3a"
